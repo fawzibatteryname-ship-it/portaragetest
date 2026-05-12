@@ -941,54 +941,11 @@
   align-items: center;
 }
 
-.battery-result-row-compact {
-  display: grid;
-  grid-template-columns: auto 1fr auto auto auto auto auto;
-  gap: 8px;
-  padding: 10px;
-  border-radius: 10px;
-  background: #0f0f0f;
-  border: 1px solid #1a1a1a;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.battery-result-row-col-main {
-  flex: 1;
-  min-width: 120px;
-}
-
-.battery-result-row-col-mid {
-  min-width: 110px;
-}
-
-.battery-result-row-col-small {
-  min-width: 70px;
-}
-
-.battery-result-row-col-actions {
-  min-width: 60px;
-}
-
 .battery-result-row-header {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: #F2BC1B;
   text-align: center;
-  margin-bottom: 3px;
-}
-
-.battery-result-row-value {
-  font-size: 13px;
-  color: #ddd;
-  text-align: center;
-  word-break: break-word;
-}
-
-.battery-result-row-value-actions {
-  display: flex;
-  gap: 4px;
-  justify-content: center;
 }
 
 .battery-result-cell {
@@ -1004,10 +961,10 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  padding: 3px 8px;
-  font-size: 11px;
+  padding: 5px 10px;
+  font-size: 12px;
   font-weight: 700;
-  margin: 1px 2px 1px 0;
+  margin: 2px 4px 2px 0;
 }
 
 .battery-stock-badge {
@@ -11592,10 +11549,10 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
         return;
       }
       if (groups.length > 1) {
-        renderBatterySizeGroups(groups, title, sizeSummary, make, model, year);
+        renderBatterySizeGroups(groups, title, sizeSummary);
         return;
       }
-      renderBatteryResultsList(groups[0].items, title, sizeSummary, make, model, year);
+      renderBatteryResultsList(groups[0].items, title, sizeSummary);
     }
 
     function renderEmptyBatteryResultsMessage(message = 'اختر السيارة أو مقاس البطارية لعرض النتائج') {
@@ -11640,7 +11597,7 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
       }
     }
 
-    function renderBatteryResultsList(items, title, summary = '', carMake = '', carModel = '', carYear = '') {
+    function renderBatteryResultsList(items, title, summary = '') {
       const container = document.getElementById('batteryResultsContainer');
       const scroll = document.getElementById('batteryResultsScroll');
       if (!container || !scroll) return;
@@ -11649,42 +11606,15 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
         const brand = row[1] || 'غير معروف';
         const size = row[0] || 'غير معروف';
         const salePrice = (row[4] || row[3] || '').trim() || '-';
-        const countOfID = carMake && carModel && carYear ? getCountOfIDForBattery(carMake, carModel, carYear, size) : 0;
-        const warranty = getWarranty(brand, size);
-        const brandInfo = getBrandInfo(brand);
+        const countOfID = Number(row[4] || 0) || 0;
         const duplicateBadge = countOfID > 0 ? `<span class="battery-count-badge">${countOfID}</span>` : '';
         return `
-          <div class="battery-result-row-compact">
-            <div class="battery-result-row-col-main">
-              <div class="battery-result-row-header">الماركة</div>
-              <div class="battery-result-row-value">${escapeHtml(brand)} ${duplicateBadge}</div>
-            </div>
-            <div class="battery-result-row-col-mid">
-              <div class="battery-result-row-header">المقاس</div>
-              <div class="battery-result-row-value">${escapeHtml(size)}</div>
-            </div>
-            <div class="battery-result-row-col-small">
-              <div class="battery-result-row-header">السعر</div>
-              <div class="battery-result-row-value">${escapeHtml(salePrice)} د.ك</div>
-            </div>
-            <div class="battery-result-row-col-small">
-              <div class="battery-result-row-header">البلد</div>
-              <div class="battery-result-row-value">${escapeHtml(brandInfo.country)}</div>
-            </div>
-            <div class="battery-result-row-col-small">
-              <div class="battery-result-row-header">الكفالة</div>
-              <div class="battery-result-row-value">${escapeHtml(warranty)}</div>
-            </div>
-            <div class="battery-result-row-col-mid">
-              <div class="battery-result-row-header">الوكيل</div>
-              <div class="battery-result-row-value">${escapeHtml(brandInfo.dealer)}</div>
-            </div>
-            <div class="battery-result-row-col-actions">
-              <div class="battery-result-row-header">الخيارات</div>
-              <div class="battery-result-row-value-actions">
-                <button type="button" class="copy-btn-small" data-copy-index="${index}">نسخ</button>
-              </div>
-            </div>
+          <div class="battery-result-row">
+            <div class="battery-result-cell"><div class="battery-result-row-header">الماركة</div>${escapeHtml(brand)} ${duplicateBadge}</div>
+            <div class="battery-result-cell"><div class="battery-result-row-header">المقاس</div>${escapeHtml(size)}</div>
+            <div class="battery-result-cell"><div class="battery-result-row-header">السعر</div>${escapeHtml(salePrice)} د.ك</div>
+            <div class="battery-result-cell"><div class="battery-result-row-header">المخزون</div>${renderMainStock(row)}</div>
+            <div class="battery-result-cell"><div class="battery-result-row-header">السائقون</div>${renderDriverStock(row)}<button type="button" class="copy-btn-small" data-copy-index="${index}" style="margin-top:10px;">نسخ الرسالة</button></div>
           </div>
         `;
       }).join('');
@@ -11713,7 +11643,7 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
       });
     }
 
-    function renderBatterySizeGroups(groups, title, summary = '', carMake = '', carModel = '', carYear = '') {
+    function renderBatterySizeGroups(groups, title, summary = '') {
       const container = document.getElementById('batteryResultsContainer');
       const scroll = document.getElementById('batteryResultsScroll');
       if (!container || !scroll) return;
@@ -11729,7 +11659,7 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
               <button type="button" class="battery-size-group-button" data-toggle-size="${escapeHtml(group.size)}">إظهار الماركات</button>
             </div>
             <div class="battery-size-group-body" id="sizeGroupBody-${groupId}">
-              ${renderBatteryItemListForGroup(group.items, group.size, carMake, carModel, carYear)}
+              ${renderBatteryItemList(group.items, group.size)}
             </div>
           </div>
         `;
@@ -11773,7 +11703,7 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
       });
     }
 
-    function renderBatteryItemListForGroup(items, groupSize, carMake, carModel, carYear) {
+    function renderBatteryItemList(items, groupSize) {
       if (!items.length) {
         return `<div class="battery-results-message">لا توجد ماركات متاحة لهذا المقاس حالياً.</div>`;
       }
@@ -11781,38 +11711,15 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
         const row = item.row;
         const brand = row[1] || 'غير معروف';
         const salePrice = (row[4] || row[3] || '').trim() || '-';
-        const countOfID = carMake && carModel && carYear ? getCountOfIDForBattery(carMake, carModel, carYear, groupSize) : 0;
-        const warranty = getWarranty(brand, groupSize);
-        const brandInfo = getBrandInfo(brand);
+        const countOfID = Number(row[4] || 0) || 0;
         const duplicateBadge = countOfID > 0 ? `<span class="battery-count-badge">${countOfID}</span>` : '';
         return `
-          <div class="battery-result-row-compact">
-            <div class="battery-result-row-col-main">
-              <div class="battery-result-row-header">الماركة</div>
-              <div class="battery-result-row-value">${escapeHtml(brand)} ${duplicateBadge}</div>
-            </div>
-            <div class="battery-result-row-col-small">
-              <div class="battery-result-row-header">السعر</div>
-              <div class="battery-result-row-value">${escapeHtml(salePrice)} د.ك</div>
-            </div>
-            <div class="battery-result-row-col-small">
-              <div class="battery-result-row-header">البلد</div>
-              <div class="battery-result-row-value">${escapeHtml(brandInfo.country)}</div>
-            </div>
-            <div class="battery-result-row-col-small">
-              <div class="battery-result-row-header">الكفالة</div>
-              <div class="battery-result-row-value">${escapeHtml(warranty)}</div>
-            </div>
-            <div class="battery-result-row-col-mid">
-              <div class="battery-result-row-header">الوكيل</div>
-              <div class="battery-result-row-value">${escapeHtml(brandInfo.dealer)}</div>
-            </div>
-            <div class="battery-result-row-col-actions">
-              <div class="battery-result-row-header">الخيارات</div>
-              <div class="battery-result-row-value-actions">
-                <button type="button" class="copy-btn-small" data-copy-group="${escapeHtml(groupSize)}" data-copy-index="${index}">نسخ</button>
-              </div>
-            </div>
+          <div class="battery-result-row">
+            <div class="battery-result-cell"><div class="battery-result-row-header">الماركة</div>${escapeHtml(brand)} ${duplicateBadge}</div>
+            <div class="battery-result-cell"><div class="battery-result-row-header">السعر</div>${escapeHtml(salePrice)} د.ك</div>
+            <div class="battery-result-cell"><div class="battery-result-row-header">المخزون</div>${renderMainStock(row)}</div>
+            <div class="battery-result-cell"><div class="battery-result-row-header">السائقون</div>${renderDriverStock(row)}</div>
+            <div class="battery-result-cell"><button type="button" class="copy-btn-small" data-copy-group="${escapeHtml(groupSize)}" data-copy-index="${index}">نسخ الرسالة</button></div>
           </div>
         `;
       }).join('');
@@ -11848,44 +11755,7 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
       return badges.length ? badges.join('<br>') : '<span style="color:#ccc;">لا يوجد مخزون رئيسي</span>';
     }
 
-    const BATTERY_BRAND_INFO = {
-      'motorcraft': { country: 'هندية', warranty: { default: '3 سنوات', special: { '95AGM': '1 سنة', 'DA100': '1 سنة' } }, dealer: 'فورد الغانم' },
-      'varta': { country: 'ألمانية', warranty: { default: '1 سنة' }, dealer: 'الفهد إنترناشيونال' },
-      'hankook': { country: 'كورية', warranty: { default: '1 سنة' }, dealer: 'الفهد إنترناشيونال' },
-      'booster': { country: 'صينية', warranty: { default: '1 سنة' }, dealer: 'افتخار' },
-      'oakley': { country: 'صينية', warranty: { default: '1 سنة' }, dealer: 'افتخار' },
-      'motorfit': { country: 'هندية', warranty: { default: '1 سنة' }, dealer: 'افتخار' },
-      'amtra': { country: '—', warranty: { default: '1 سنة' }, dealer: 'البابطين' },
-      'emtrac': { country: 'هندية', warranty: { default: '1 سنة' }, dealer: 'البابطين' }
-    };
-
-    function getBrandInfo(brand) {
-      const normalized = normalizeText(brand);
-      return BATTERY_BRAND_INFO[normalized] || { country: '—', warranty: { default: '—' }, dealer: '—' };
-    }
-
-    function getWarranty(brand, size) {
-      const info = getBrandInfo(brand);
-      if (!info.warranty) return '—';
-      const special = info.warranty.special || {};
-      const sizeNormalized = normalizeText(size);
-      for (const [key, value] of Object.entries(special)) {
-        if (normalizeText(key) === sizeNormalized) return value;
-      }
-      return info.warranty.default || '—';
-    }
-
-    function getCountOfIDForBattery(make, model, year, size) {
-      if (!carSheetData) return 0;
-      const row = carSheetData.find(r => 
-        normalizeText(r[0]) === normalizeText(make) &&
-        normalizeText(r[1]) === normalizeText(model) &&
-        normalizeText(r[2]) === normalizeText(year) &&
-        normalizeText(r[3]) === normalizeText(size)
-      );
-      if (!row) return 0;
-      return Number(row[4]) || 0;
-    }
+    const BATTERY_DRIVER_MAP = {
       'dattaram+niyas': 'نياز-داترام',
       'muthu': 'موتو',
       'ganesh': 'جانيش',
