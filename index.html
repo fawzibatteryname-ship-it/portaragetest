@@ -846,7 +846,6 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  max-height: 350px;
 }
 
 .battery-results-message {
@@ -986,34 +985,6 @@
   border: 1px solid rgba(242,188,27,0.2);
 }
 
-.battery-results-footer {
-  width: 100%;
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 16px;
-  padding: 14px;
-  color: #ddd;
-  margin-top: 12px;
-}
-
-.battery-results-footer h4 {
-  margin: 0 0 8px 0;
-  color: #F2BC1B;
-  font-size: 14px;
-}
-
-.battery-results-footer ul {
-  margin: 0;
-  padding-right: 16px;
-  list-style: none;
-  color: #ccc;
-  font-size: 13px;
-}
-
-.battery-results-footer li {
-  margin-bottom: 6px;
-}
-
 @media (max-width: 768px) {
   .battery-result-row {
     grid-template-columns: 1fr;
@@ -1039,7 +1010,7 @@
     
     .table-scroll {
       overflow-y: auto;
-      max-height: 300px;
+      flex: 1;
     }
     
     .table-scroll::-webkit-scrollbar {
@@ -11684,7 +11655,6 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
             </div>
           </div>
           ${rowsHtml}
-          ${renderBatteryFooter()}
         </div>
       `;
       container.classList.remove('hidden');
@@ -11728,7 +11698,6 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
             </div>
           </div>
           ${groupsHtml}
-          ${renderBatteryFooter()}
         </div>
       `;
       container.classList.remove('hidden');
@@ -11781,19 +11750,6 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
 
     function escapeId(value) {
       return String(value || '').replace(/[^a-zA-Z0-9_-]/g, '_');
-    }
-
-    function renderBatteryFooter() {
-      return `
-        <div class="battery-results-footer">
-          <h4>⚠️ ملاحظة مهمة - رسوم إضافية</h4>
-          <ul>
-            <li>زيادة 15 د.ك: إذا البطارية تحت الكشن</li>
-            <li>زيادة 10 د.ك: صباح السالم، أم الهيمان، شعيبة، ميناء عبدالله، جليعة، بنيدر، الخيران، النويصيب، الروضتين، المطلاع، العبدلي، الصبية، جبد، صباح الأحمد، الوفرة</li>
-            <li>زيادة 5 د.ك: جابر الأحمد، سعد العبدالله، الجهراء، فحيحيل، الأحمدي، غرب عبدالله مبارك</li>
-          </ul>
-        </div>
-      `;
     }
 
     function renderMainStock(row) {
