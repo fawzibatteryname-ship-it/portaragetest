@@ -10969,9 +10969,9 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
 
       contentArea.innerHTML = `
         <div class="form-section full-width">
-          <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
             <h3 class="section-title">بحث بطاريات</h3>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
               <button id="batteryModeSizeBtn" class="btn-option active">🔋 البحث بمقاس البطارية</button>
               <button id="batteryModeCarBtn" class="btn-option">🚗 البحث بأسماء السيارات</button>
             </div>
@@ -11251,16 +11251,31 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
       sizeInput.value = '';
       sizeList.innerHTML = '';
       sizeList.classList.add('hidden');
-      sizeInput.oninput = () => updateBatterySizeSuggestions(sizeInput.value.trim());
-      sizeInput.onfocus = () => updateBatterySizeSuggestions(sizeInput.value.trim());
+      
+      sizeInput.oninput = () => {
+        const value = sizeInput.value.trim();
+        if (!value) {
+          renderEmptyBatteryResultsMessage('ابدأ الكتابة للبحث عن مقاس البطارية');
+        }
+        updateBatterySizeSuggestions(value);
+      };
+      
+      sizeInput.onfocus = () => {
+        const value = sizeInput.value.trim();
+        if (!value) {
+          renderEmptyBatteryResultsMessage('ابدأ الكتابة للبحث عن مقاس البطارية');
+        }
+        updateBatterySizeSuggestions(value);
+      };
+      
       sizeInput.onkeydown = (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
           renderBatteryResultsForSize(sizeInput.value.trim());
         }
       };
-      updateBatterySizeSuggestions('');
-      renderEmptyBatteryResultsMessage();
+      
+      renderEmptyBatteryResultsMessage('ابدأ الكتابة للبحث عن مقاس البطارية');
     }
 
     function renderBatteryCarMode() {
@@ -11281,6 +11296,7 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
         modelSearch.disabled = true;
         modelList.innerHTML = '';
         modelList.classList.add('hidden');
+        renderEmptyBatteryResultsMessage('اختر الموديل');
         resetYearStep();
       }
 
@@ -11289,6 +11305,7 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
         yearSearch.disabled = true;
         yearList.innerHTML = '';
         yearList.classList.add('hidden');
+        renderEmptyBatteryResultsMessage('اختر السنة');
       }
 
       function renderMakeOptions(query = '') {
@@ -11298,11 +11315,13 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
           selectedMake = value;
           makeSearch.value = value;
           makeList.classList.add('hidden');
+          resetModelStep();
           modelSearch.disabled = false;
           modelSearch.value = '';
-          modelList.classList.add('hidden');
-          resetYearStep();
-          renderModelOptions('');
+          setTimeout(() => { 
+            modelSearch.focus(); 
+            renderModelOptions('');
+          }, 50);
         });
       }
 
@@ -11313,10 +11332,13 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
           selectedModel = value;
           modelSearch.value = value;
           modelList.classList.add('hidden');
+          resetYearStep();
           yearSearch.disabled = false;
           yearSearch.value = '';
-          yearList.classList.add('hidden');
-          renderYearOptions('');
+          setTimeout(() => { 
+            yearSearch.focus(); 
+            renderYearOptions('');
+          }, 50);
         });
       }
 
@@ -11332,7 +11354,16 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
 
       makeSearch.disabled = false;
       makeSearch.value = '';
-      makeSearch.oninput = () => renderMakeOptions(makeSearch.value.trim());
+      
+      makeSearch.oninput = () => {
+        const value = makeSearch.value.trim();
+        if (!value) {
+          resetModelStep();
+        } else {
+          renderMakeOptions(value);
+        }
+      };
+      
       makeSearch.onfocus = () => renderMakeOptions(makeSearch.value.trim());
       makeSearch.onkeydown = (e) => {
         if (e.key === 'Enter') {
@@ -11340,12 +11371,24 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
           const value = makeSearch.value.trim();
           if (value) {
             selectedMake = value;
-            renderModelOptions('');
+            modelSearch.disabled = false;
+            setTimeout(() => { 
+              modelSearch.focus(); 
+              renderModelOptions('');
+            }, 50);
           }
         }
       };
 
-      modelSearch.oninput = () => renderModelOptions(modelSearch.value.trim());
+      modelSearch.oninput = () => {
+        const value = modelSearch.value.trim();
+        if (!value) {
+          resetYearStep();
+        } else {
+          renderModelOptions(value);
+        }
+      };
+      
       modelSearch.onfocus = () => renderModelOptions(modelSearch.value.trim());
       modelSearch.onkeydown = (e) => {
         if (e.key === 'Enter') {
@@ -11353,12 +11396,24 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
           const value = modelSearch.value.trim();
           if (value) {
             selectedModel = value;
-            renderYearOptions('');
+            yearSearch.disabled = false;
+            setTimeout(() => { 
+              yearSearch.focus(); 
+              renderYearOptions('');
+            }, 50);
           }
         }
       };
 
-      yearSearch.oninput = () => renderYearOptions(yearSearch.value.trim());
+      yearSearch.oninput = () => {
+        const value = yearSearch.value.trim();
+        if (!value) {
+          renderEmptyBatteryResultsMessage('اختر السيارة كاملة لعرض النتائج');
+        } else {
+          renderYearOptions(value);
+        }
+      };
+      
       yearSearch.onfocus = () => renderYearOptions(yearSearch.value.trim());
       yearSearch.onkeydown = (e) => {
         if (e.key === 'Enter') {
@@ -11373,7 +11428,7 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
       resetModelStep();
       resetYearStep();
       renderMakeOptions('');
-      renderEmptyBatteryResultsMessage();
+      renderEmptyBatteryResultsMessage('اختر الشركة أولاً');
     }
 
     function updateBatterySizeSuggestions(query) {
@@ -11402,118 +11457,6 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
           renderBatteryResultsForSize(selectedSize);
         };
       });
-    }
-
-    function renderBatteryCarMode() {
-      const makeSearch = document.getElementById('carMakeSearch');
-      const modelSearch = document.getElementById('carModelSearch');
-      const yearSearch = document.getElementById('carYearSearch');
-      const makeList = document.getElementById('carMakeList');
-      const modelList = document.getElementById('carModelList');
-      const yearList = document.getElementById('carYearList');
-      if (!makeSearch || !modelSearch || !yearSearch || !makeList || !modelList || !yearList) return;
-
-      let selectedMake = '';
-      let selectedModel = '';
-
-      function resetModelStep() {
-        selectedModel = '';
-        modelSearch.value = '';
-        modelSearch.disabled = true;
-        modelList.innerHTML = '';
-        modelList.classList.add('hidden');
-        resetYearStep();
-      }
-
-      function resetYearStep() {
-        yearSearch.value = '';
-        yearSearch.disabled = true;
-        yearList.innerHTML = '';
-        yearList.classList.add('hidden');
-      }
-
-      function renderMakeOptions(query = '') {
-        const makes = getUniqueCarMakes();
-        const filtered = makes.filter(item => normalizeText(item).includes(normalizeText(query)));
-        renderFilterButtons(makeList, filtered, query, value => {
-          selectedMake = value;
-          makeSearch.value = value;
-          makeList.classList.add('hidden');
-          modelSearch.disabled = false;
-          modelSearch.value = '';
-          modelList.classList.add('hidden');
-          resetYearStep();
-          renderModelOptions('');
-        });
-      }
-
-      function renderModelOptions(query = '') {
-        const models = getUniqueModelsForMake(selectedMake);
-        const filtered = models.filter(item => normalizeText(item).includes(normalizeText(query)));
-        renderFilterButtons(modelList, filtered, query, value => {
-          selectedModel = value;
-          modelSearch.value = value;
-          modelList.classList.add('hidden');
-          yearSearch.disabled = false;
-          yearSearch.value = '';
-          yearList.classList.add('hidden');
-          renderYearOptions('');
-        });
-      }
-
-      function renderYearOptions(query = '') {
-        const years = getUniqueYearsForMakeModel(selectedMake, selectedModel);
-        const filtered = years.filter(item => normalizeText(item).includes(normalizeText(query)));
-        renderFilterButtons(yearList, filtered, query, value => {
-          yearSearch.value = value;
-          yearList.classList.add('hidden');
-          renderBatteryResultsForCar(selectedMake, selectedModel, value);
-        });
-      }
-
-      makeSearch.disabled = false;
-      makeSearch.value = '';
-      makeSearch.oninput = () => renderMakeOptions(makeSearch.value.trim());
-      makeSearch.onfocus = () => renderMakeOptions(makeSearch.value.trim());
-      makeSearch.onkeydown = (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          const value = makeSearch.value.trim();
-          if (value) {
-            selectedMake = value;
-            renderModelOptions('');
-          }
-        }
-      };
-
-      modelSearch.oninput = () => renderModelOptions(modelSearch.value.trim());
-      modelSearch.onfocus = () => renderModelOptions(modelSearch.value.trim());
-      modelSearch.onkeydown = (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          const value = modelSearch.value.trim();
-          if (value) {
-            selectedModel = value;
-            renderYearOptions('');
-          }
-        }
-      };
-
-      yearSearch.oninput = () => renderYearOptions(yearSearch.value.trim());
-      yearSearch.onfocus = () => renderYearOptions(yearSearch.value.trim());
-      yearSearch.onkeydown = (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          const value = yearSearch.value.trim();
-          if (value) {
-            renderBatteryResultsForCar(selectedMake, selectedModel, value);
-          }
-        }
-      };
-
-      resetModelStep();
-      resetYearStep();
-      renderMakeOptions('');
     }
 
     function renderFilterButtons(container, items, query, onSelect) {
@@ -11573,6 +11516,9 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
         renderEmptyBatteryResultsMessage('لا توجد مقاسات بطارية محددة لهذه السيارة');
         return;
       }
+      const sizeSummary = sortedSizes.map(size => `${size} (${sizeCounts[size]})`).join(' • ');
+      const titleWithSummary = `${make} - ${model} - ${year}<div style="font-size:13px; color:#aaa; margin-top:4px;">${sizeSummary}</div>`;
+      
       const groups = sortedSizes.map(size => {
         const items = (batterySheetData || []).filter(row => normalizeText(row[0]) === normalizeText(size) && hasAnyStock(row));
         return {
@@ -11586,10 +11532,10 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
         return;
       }
       if (groups.length > 1) {
-        renderBatterySizeGroups(groups, `النتائج للسيارة: ${make} - ${model} - ${year}`);
+        renderBatterySizeGroups(groups, `النتائج للسيارة: ${titleWithSummary}`);
         return;
       }
-      renderBatteryResultsList(groups[0].items, `النتائج للسيارة: ${make} - ${model} - ${year}`);
+      renderBatteryResultsList(groups[0].items, `النتائج للسيارة: ${titleWithSummary}`);
     }
 
     function renderEmptyBatteryResultsMessage(message = 'اختر السيارة أو مقاس البطارية لعرض النتائج') {
