@@ -847,7 +847,188 @@
   display: flex;
   flex-direction: column;
   max-height: 350px;
-}    
+}
+
+.battery-results-message {
+  padding: 18px;
+  border-radius: 12px;
+  background: #101010;
+  color: #ddd;
+  font-size: 14px;
+  text-align: center;
+}
+
+.battery-results-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #101010;
+  border: 1px solid #222;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.battery-size-group {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 12px;
+  transition: box-shadow .25s ease, transform .25s ease;
+}
+
+.battery-size-group.open {
+  box-shadow: 0 24px 45px rgba(0,0,0,0.28);
+  transform: translateY(-1px);
+}
+
+.battery-size-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.battery-size-group-title {
+  color: #F2BC1B;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.battery-size-group-count {
+  color: #ddd;
+  font-size: 13px;
+}
+
+.battery-size-group-button {
+  background: #F2BC1B;
+  color: #000;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.battery-size-group-button:hover {
+  background: #d9a616;
+}
+
+.battery-size-group-body {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height .35s ease, opacity .35s ease;
+}
+
+.battery-size-group.open .battery-size-group-body {
+  opacity: 1;
+  max-height: 1200px;
+}
+
+.battery-result-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.2fr) minmax(120px, 1.2fr) minmax(100px, 1fr) minmax(180px, 1.6fr) minmax(120px, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #121212;
+  border: 1px solid #222;
+  align-items: center;
+}
+
+.battery-result-row-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: #F2BC1B;
+  text-align: center;
+}
+
+.battery-result-cell {
+  color: #ddd;
+  font-size: 13px;
+  text-align: center;
+}
+
+.battery-stock-badge,
+.battery-driver-badge,
+.battery-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 2px 4px 2px 0;
+}
+
+.battery-stock-badge {
+  background: #1c1c1c;
+  color: #F2BC1B;
+  border: 1px solid rgba(242,188,27,0.18);
+}
+
+.battery-driver-badge {
+  background: #151515;
+  color: #fff;
+  border: 1px solid #333;
+}
+
+.battery-count-badge {
+  background: rgba(242,188,27,0.12);
+  color: #F2BC1B;
+  border: 1px solid rgba(242,188,27,0.2);
+}
+
+.battery-results-footer {
+  width: 100%;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 16px;
+  padding: 14px;
+  color: #ddd;
+  margin-top: 12px;
+}
+
+.battery-results-footer h4 {
+  margin: 0 0 8px 0;
+  color: #F2BC1B;
+  font-size: 14px;
+}
+
+.battery-results-footer ul {
+  margin: 0;
+  padding-right: 16px;
+  list-style: none;
+  color: #ccc;
+  font-size: 13px;
+}
+
+.battery-results-footer li {
+  margin-bottom: 6px;
+}
+
+@media (max-width: 768px) {
+  .battery-result-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 10px;
+  }
+  .battery-result-row-header,
+  .battery-result-cell {
+    text-align: right;
+  }
+  .battery-size-group-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
     .table-header {
       background: #F2BC1B;
       padding: 10px 12px;
@@ -11108,6 +11289,120 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
         }
       };
       updateBatterySizeSuggestions('');
+      renderEmptyBatteryResultsMessage();
+    }
+
+    function renderBatteryCarMode() {
+      const makeSearch = document.getElementById('carMakeSearch');
+      const modelSearch = document.getElementById('carModelSearch');
+      const yearSearch = document.getElementById('carYearSearch');
+      const makeList = document.getElementById('carMakeList');
+      const modelList = document.getElementById('carModelList');
+      const yearList = document.getElementById('carYearList');
+      if (!makeSearch || !modelSearch || !yearSearch || !makeList || !modelList || !yearList) return;
+
+      let selectedMake = '';
+      let selectedModel = '';
+
+      function resetModelStep() {
+        selectedModel = '';
+        modelSearch.value = '';
+        modelSearch.disabled = true;
+        modelList.innerHTML = '';
+        modelList.classList.add('hidden');
+        resetYearStep();
+      }
+
+      function resetYearStep() {
+        yearSearch.value = '';
+        yearSearch.disabled = true;
+        yearList.innerHTML = '';
+        yearList.classList.add('hidden');
+      }
+
+      function renderMakeOptions(query = '') {
+        const makes = getUniqueCarMakes();
+        const filtered = makes.filter(item => normalizeText(item).includes(normalizeText(query)));
+        renderFilterButtons(makeList, filtered, query, value => {
+          selectedMake = value;
+          makeSearch.value = value;
+          makeList.classList.add('hidden');
+          modelSearch.disabled = false;
+          modelSearch.value = '';
+          modelList.classList.add('hidden');
+          resetYearStep();
+          renderModelOptions('');
+        });
+      }
+
+      function renderModelOptions(query = '') {
+        const models = getUniqueModelsForMake(selectedMake);
+        const filtered = models.filter(item => normalizeText(item).includes(normalizeText(query)));
+        renderFilterButtons(modelList, filtered, query, value => {
+          selectedModel = value;
+          modelSearch.value = value;
+          modelList.classList.add('hidden');
+          yearSearch.disabled = false;
+          yearSearch.value = '';
+          yearList.classList.add('hidden');
+          renderYearOptions('');
+        });
+      }
+
+      function renderYearOptions(query = '') {
+        const years = getUniqueYearsForMakeModel(selectedMake, selectedModel);
+        const filtered = years.filter(item => normalizeText(item).includes(normalizeText(query)));
+        renderFilterButtons(yearList, filtered, query, value => {
+          yearSearch.value = value;
+          yearList.classList.add('hidden');
+          renderBatteryResultsForCar(selectedMake, selectedModel, value);
+        });
+      }
+
+      makeSearch.disabled = false;
+      makeSearch.value = '';
+      makeSearch.oninput = () => renderMakeOptions(makeSearch.value.trim());
+      makeSearch.onfocus = () => renderMakeOptions(makeSearch.value.trim());
+      makeSearch.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const value = makeSearch.value.trim();
+          if (value) {
+            selectedMake = value;
+            renderModelOptions('');
+          }
+        }
+      };
+
+      modelSearch.oninput = () => renderModelOptions(modelSearch.value.trim());
+      modelSearch.onfocus = () => renderModelOptions(modelSearch.value.trim());
+      modelSearch.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const value = modelSearch.value.trim();
+          if (value) {
+            selectedModel = value;
+            renderYearOptions('');
+          }
+        }
+      };
+
+      yearSearch.oninput = () => renderYearOptions(yearSearch.value.trim());
+      yearSearch.onfocus = () => renderYearOptions(yearSearch.value.trim());
+      yearSearch.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const value = yearSearch.value.trim();
+          if (value) {
+            renderBatteryResultsForCar(selectedMake, selectedModel, value);
+          }
+        }
+      };
+
+      resetModelStep();
+      resetYearStep();
+      renderMakeOptions('');
+      renderEmptyBatteryResultsMessage();
     }
 
     function updateBatterySizeSuggestions(query) {
@@ -11270,21 +11565,22 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
 
     function renderBatteryResultsForSize(sizeValue) {
       if (!sizeValue) {
-        setBatteryError('يرجى كتابة مقاس البطارية أولاً.');
+        renderEmptyBatteryResultsMessage();
         return;
       }
       setBatteryError('');
-      const matching = (batterySheetData || []).filter(row => normalizeText(row[0]) === normalizeText(sizeValue));
+      const matching = (batterySheetData || []).filter(row => normalizeText(row[0]) === normalizeText(sizeValue) && hasAnyStock(row));
       if (!matching.length) {
-        renderBatteryResultsTable([], `لم نوجد نتائج للمقاس: ${sizeValue}`);
+        renderEmptyBatteryResultsMessage(`لم نوجد نتائج للمقاس: ${sizeValue}`);
         return;
       }
-      renderBatteryResultsTable(matching, `النتائج لمقاس البطارية: ${sizeValue}`);
+      const grouped = groupDuplicateRows(matching);
+      renderBatteryResultsList(grouped, `النتائج لمقاس البطارية: ${sizeValue}`);
     }
 
     function renderBatteryResultsForCar(make, model, year) {
       if (!make || !model || !year) {
-        setBatteryError('يرجى اختيار الشركة والموديل والسنة أولاً.');
+        renderEmptyBatteryResultsMessage();
         return;
       }
       setBatteryError('');
@@ -11292,74 +11588,212 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
         && normalizeText(row[1]) === normalizeText(model)
         && normalizeText(row[2]) === normalizeText(year));
       if (!matchedCars.length) {
-        renderBatteryResultsTable([], `لا توجد بيانات مطابقة للسيارة المحددة: ${make} ${model} ${year}`);
+        renderEmptyBatteryResultsMessage(`لا توجد بيانات مطابقة للسيارة المحددة: ${make} ${model} ${year}`);
         return;
       }
-      const requestedSizes = Array.from(new Set(matchedCars.map(row => (row[3] || '').trim()).filter(Boolean)));
-      const results = [];
-      requestedSizes.forEach(size => {
-        const matches = (batterySheetData || []).filter(row => normalizeText(row[0]) === normalizeText(size));
-        results.push(...matches);
-      });
-      if (!results.length) {
-        renderBatteryResultsTable([], `لا توجد بطاريات مطابقة للمقاسات المطلوبة: ${requestedSizes.join(', ')}`);
+      const sizeCounts = matchedCars.reduce((acc, row) => {
+        const size = (row[3] || '').trim();
+        if (!size) return acc;
+        acc[size] = (acc[size] || 0) + 1;
+        return acc;
+      }, {});
+      const sortedSizes = Object.keys(sizeCounts).sort((a, b) => a.localeCompare(b, 'ar', { sensitivity: 'base' }));
+      if (!sortedSizes.length) {
+        renderEmptyBatteryResultsMessage('لا توجد مقاسات بطارية محددة لهذه السيارة');
         return;
       }
-      renderBatteryResultsTable(results, `النتائج للسيارة: ${make} - ${model} - ${year}`);
+      const groups = sortedSizes.map(size => {
+        const items = (batterySheetData || []).filter(row => normalizeText(row[0]) === normalizeText(size) && hasAnyStock(row));
+        return {
+          size,
+          count: sizeCounts[size],
+          items: groupDuplicateRows(items)
+        };
+      }).filter(group => group.items.length > 0);
+      if (!groups.length) {
+        renderEmptyBatteryResultsMessage('كل البطاريات المطابقة غير متوفرة حالياً');
+        return;
+      }
+      if (groups.length > 1) {
+        renderBatterySizeGroups(groups, `النتائج للسيارة: ${make} - ${model} - ${year}`);
+        return;
+      }
+      renderBatteryResultsList(groups[0].items, `النتائج للسيارة: ${make} - ${model} - ${year}`);
     }
 
-    function renderBatteryResultsTable(rows, title) {
+    function renderEmptyBatteryResultsMessage(message = 'اختر السيارة أو مقاس البطارية لعرض النتائج') {
       const container = document.getElementById('batteryResultsContainer');
       const scroll = document.getElementById('batteryResultsScroll');
       if (!container || !scroll) return;
-      if (!rows || !rows.length) {
-        scroll.innerHTML = `<div class="form-field" style="padding:12px; color:#ccc;">${escapeHtml(title || 'لا توجد نتائج.')}</div>`;
-        container.classList.remove('hidden');
-        return;
+      container.classList.remove('hidden');
+      scroll.innerHTML = `<div class="battery-results-message">${escapeHtml(message)}</div>`;
+    }
+
+    function hasAnyStock(row) {
+      const fkQty = Number(row[5]) || 0;
+      const mQty = Number(row[6]) || 0;
+      let driverQty = 0;
+      if (batterySheetHeaders) {
+        for (let i = 7; i < batterySheetHeaders.length; i += 2) {
+          driverQty += Number(row[i]) || 0;
+          driverQty += Number(row[i + 1]) || 0;
+        }
       }
-      const tableRows = rows.map((row, index) => {
+      return fkQty + mQty + driverQty > 0;
+    }
+
+    function groupDuplicateRows(rows) {
+      const map = new Map();
+      rows.forEach(row => {
+        const key = `${(row[0] || '').trim()}|${(row[1] || '').trim()}|${(row[2] || '').trim()}|${(row[4] || '').trim()}|${(row[5] || '').trim()}|${(row[6] || '').trim()}`;
+        if (!map.has(key)) {
+          map.set(key, { row, count: 1 });
+        } else {
+          map.get(key).count += 1;
+        }
+      });
+      return Array.from(map.values());
+    }
+
+    function renderBatteryResultsList(items, title) {
+      const container = document.getElementById('batteryResultsContainer');
+      const scroll = document.getElementById('batteryResultsScroll');
+      if (!container || !scroll) return;
+      const rowsHtml = items.map((item, index) => {
+        const row = item.row;
         const brand = row[1] || 'غير معروف';
         const size = row[0] || 'غير معروف';
         const salePrice = (row[4] || row[3] || '').trim() || '-';
+        const duplicateBadge = item.count > 1 ? `<span class="battery-count-badge">عدد ${item.count}</span>` : '';
         return `
-          <tr>
-            <td>${escapeHtml(brand)}</td>
-            <td>${escapeHtml(size)}</td>
-            <td>${escapeHtml(salePrice)} د.ك</td>
-            <td>${renderMainStock(row)}</td>
-            <td>${renderDriverStock(row)}</td>
-            <td><button type="button" class="copy-btn-small" data-copy-index="${index}">نسخ الرسالة</button></td>
-          </tr>
+          <div class="battery-result-row">
+            <div class="battery-result-cell"><div class="battery-result-row-header">الماركة</div>${escapeHtml(brand)} ${duplicateBadge}</div>
+            <div class="battery-result-cell"><div class="battery-result-row-header">المقاس</div>${escapeHtml(size)}</div>
+            <div class="battery-result-cell"><div class="battery-result-row-header">السعر</div>${escapeHtml(salePrice)} د.ك</div>
+            <div class="battery-result-cell"><div class="battery-result-row-header">المخزون</div>${renderMainStock(row)}</div>
+            <div class="battery-result-cell"><div class="battery-result-row-header">السائقون</div>${renderDriverStock(row)}<button type="button" class="copy-btn-small" data-copy-index="${index}" style="margin-top:10px;">نسخ الرسالة</button></div>
+          </div>
         `;
       }).join('');
+
       scroll.innerHTML = `
-        <div style="padding:12px; font-weight:700; color:#F2BC1B; text-align:right;">${escapeHtml(title)}</div>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>الماركة</th>
-              <th>المقاس</th>
-              <th>سعر البيع 💵</th>
-              <th>المخزون الرئيسي 📦</th>
-              <th>مخزون السائقين 🚚</th>
-              <th>نسخ الرسالة</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tableRows}
-          </tbody>
-        </table>
+        <div class="battery-results-card">
+          <div class="battery-size-group-header" style="margin-bottom:10px;">
+            <div>
+              <h4 class="battery-size-group-title">${escapeHtml(title)}</h4>
+            </div>
+          </div>
+          ${rowsHtml}
+          ${renderBatteryFooter()}
+        </div>
       `;
       container.classList.remove('hidden');
       scroll.querySelectorAll('.copy-btn-small').forEach(btn => {
         btn.onclick = async () => {
           const index = Number(btn.dataset.copyIndex);
-          const selected = rows[index];
+          const selected = items[index];
           if (!selected) return;
-          await copyBatteryTextToClipboard(buildBatteryMessage(selected));
+          await copyBatteryTextToClipboard(buildBatteryMessage(selected.row));
           showToast('تم نسخ الرسالة');
         };
       });
+    }
+
+    function renderBatterySizeGroups(groups, title) {
+      const container = document.getElementById('batteryResultsContainer');
+      const scroll = document.getElementById('batteryResultsScroll');
+      if (!container || !scroll) return;
+      const groupsHtml = groups.map(group => {
+        const groupId = escapeId(group.size);
+        return `
+          <div class="battery-size-group" data-size="${escapeHtml(group.size)}">
+            <div class="battery-size-group-header">
+              <div>
+                <h4 class="battery-size-group-title">${escapeHtml(group.size)}</h4>
+                <div class="battery-size-group-count">${group.count} نتيجة</div>
+              </div>
+              <button type="button" class="battery-size-group-button" data-toggle-size="${escapeHtml(group.size)}">إظهار الماركات</button>
+            </div>
+            <div class="battery-size-group-body" id="sizeGroupBody-${groupId}">
+              ${renderBatteryItemList(group.items, group.size)}
+            </div>
+          </div>
+        `;
+      }).join('');
+      scroll.innerHTML = `
+        <div class="battery-results-card">
+          <div class="battery-size-group-header" style="margin-bottom:10px;">
+            <div>
+              <h4 class="battery-size-group-title">${escapeHtml(title)}</h4>
+            </div>
+          </div>
+          ${groupsHtml}
+          ${renderBatteryFooter()}
+        </div>
+      `;
+      container.classList.remove('hidden');
+      scroll.querySelectorAll('[data-toggle-size]').forEach(btn => {
+        btn.onclick = () => {
+          const groupEl = btn.closest('.battery-size-group');
+          if (!groupEl) return;
+          const body = groupEl.querySelector('.battery-size-group-body');
+          const open = groupEl.classList.toggle('open');
+          btn.textContent = open ? 'إخفاء الماركات' : 'إظهار الماركات';
+          if (body) {
+            body.style.maxHeight = open ? `${body.scrollHeight + 80}px` : '0';
+          }
+        };
+      });
+      scroll.querySelectorAll('.copy-btn-small').forEach(btn => {
+        btn.onclick = async () => {
+          const groupKey = btn.dataset.copyGroup;
+          const index = Number(btn.dataset.copyIndex);
+          const group = groups.find(g => g.size === groupKey);
+          if (!group) return;
+          const selected = group.items[index];
+          if (!selected) return;
+          await copyBatteryTextToClipboard(buildBatteryMessage(selected.row));
+          showToast('تم نسخ الرسالة');
+        };
+      });
+    }
+
+    function renderBatteryItemList(items, groupSize) {
+      if (!items.length) {
+        return `<div class="battery-results-message">لا توجد ماركات متاحة لهذا المقاس حالياً.</div>`;
+      }
+      return items.map((item, index) => {
+        const row = item.row;
+        const brand = row[1] || 'غير معروف';
+        const salePrice = (row[4] || row[3] || '').trim() || '-';
+        const duplicateBadge = item.count > 1 ? `<span class="battery-count-badge">${item.count}</span>` : '';
+        return `
+          <div class="battery-result-row">
+            <div class="battery-result-cell"><div class="battery-result-row-header">الماركة</div>${escapeHtml(brand)} ${duplicateBadge}</div>
+            <div class="battery-result-cell"><div class="battery-result-row-header">السعر</div>${escapeHtml(salePrice)} د.ك</div>
+            <div class="battery-result-cell"><div class="battery-result-row-header">المخزون</div>${renderMainStock(row)}</div>
+            <div class="battery-result-cell"><div class="battery-result-row-header">السائقون</div>${renderDriverStock(row)}</div>
+            <div class="battery-result-cell"><button type="button" class="copy-btn-small" data-copy-group="${escapeHtml(groupSize)}" data-copy-index="${index}">نسخ الرسالة</button></div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function escapeId(value) {
+      return String(value || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+    }
+
+    function renderBatteryFooter() {
+      return `
+        <div class="battery-results-footer">
+          <h4>⚠️ ملاحظة مهمة - رسوم إضافية</h4>
+          <ul>
+            <li>زيادة 15 د.ك: إذا البطارية تحت الكشن</li>
+            <li>زيادة 10 د.ك: صباح السالم، أم الهيمان، شعيبة، ميناء عبدالله، جليعة، بنيدر، الخيران، النويصيب، الروضتين، المطلاع، العبدلي، الصبية، جبد، صباح الأحمد، الوفرة</li>
+            <li>زيادة 5 د.ك: جابر الأحمد، سعد العبدالله، الجهراء، فحيحيل، الأحمدي، غرب عبدالله مبارك</li>
+          </ul>
+        </div>
+      `;
     }
 
     function renderMainStock(row) {
@@ -11418,7 +11852,7 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
 
     function renderDriverStock(row) {
       if (!batterySheetHeaders || !batterySheetHeaders.length) return '<span style="color:#ccc;">بيانات السائقين غير متاحة</span>';
-      const lines = [];
+      const badges = [];
       for (let i = 7; i < batterySheetHeaders.length; i += 2) {
         const driverNameRaw = batterySheetHeaders[i] || '';
         const name = getDriverName(driverNameRaw);
@@ -11427,15 +11861,15 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
         const mQty = Number(row[i + 1]) || 0;
         if (fkQty || mQty) {
           const parts = [];
-          if (fkQty) parts.push(`مورد اف كي: ${fkQty}`);
-          if (mQty) parts.push(`مورد افتخار: ${mQty}`);
-          lines.push(`${escapeHtml(name)} | ${parts.join(' | ')}`);
+          if (fkQty) parts.push(`FK:${fkQty}`);
+          if (mQty) parts.push(`M:${mQty}`);
+          badges.push(`<span class="battery-driver-badge">${escapeHtml(name)} ${parts.join(' | ')}</span>`);
         }
       }
-      if (!lines.length) {
+      if (!badges.length) {
         return '<span style="color:#fbbf24;">في المورد فقط ❗</span>';
       }
-      return lines.map(line => `<div style="margin:4px 0;">${line}</div>`).join('');
+      return badges.join('');
     }
 
     function buildBatteryMessage(row) {
