@@ -1034,24 +1034,9 @@
     gap: 8px;
     padding: 10px;
   }
-  .battery-result-row-compact {
-    grid-template-columns: 1fr;
-    gap: 6px;
-    padding: 8px;
-  }
   .battery-result-row-header,
-  .battery-result-cell,
-  .battery-result-row-value {
+  .battery-result-cell {
     text-align: right;
-  }
-  .battery-result-row-col-main,
-  .battery-result-row-col-mid,
-  .battery-result-row-col-small,
-  .battery-result-row-col-actions {
-    min-width: unset;
-  }
-  .battery-result-row-value-actions {
-    justify-content: flex-end;
   }
   .battery-size-group-header {
     flex-direction: column;
@@ -11564,7 +11549,7 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
         return;
       }
       const grouped = groupDuplicateRows(matching);
-      renderBatteryResultsList(grouped, `النتائج لمقاس البطارية: ${sizeValue}`, '', '', '', '');
+      renderBatteryResultsList(grouped, `النتائج لمقاس البطارية: ${sizeValue}`);
     }
 
     function renderBatteryResultsForCar(make, model, year) {
@@ -11607,7 +11592,7 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
         return;
       }
       if (groups.length > 1) {
-        renderBatterySizeGroups(groups, title, sizeSummary);
+        renderBatterySizeGroups(groups, title, sizeSummary, make, model, year);
         return;
       }
       renderBatteryResultsList(groups[0].items, title, sizeSummary, make, model, year);
@@ -11674,7 +11659,7 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
               <div class="battery-result-row-header">الماركة</div>
               <div class="battery-result-row-value">${escapeHtml(brand)} ${duplicateBadge}</div>
             </div>
-            <div class="battery-result-row-col-small">
+            <div class="battery-result-row-col-mid">
               <div class="battery-result-row-header">المقاس</div>
               <div class="battery-result-row-value">${escapeHtml(size)}</div>
             </div>
@@ -11744,7 +11729,7 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
               <button type="button" class="battery-size-group-button" data-toggle-size="${escapeHtml(group.size)}">إظهار الماركات</button>
             </div>
             <div class="battery-size-group-body" id="sizeGroupBody-${groupId}">
-              ${renderBatteryItemList(group.items, group.size, carMake, carModel, carYear)}
+              ${renderBatteryItemListForGroup(group.items, group.size, carMake, carModel, carYear)}
             </div>
           </div>
         `;
@@ -11788,7 +11773,7 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
       });
     }
 
-    function renderBatteryItemList(items, groupSize, carMake = '', carModel = '', carYear = '') {
+    function renderBatteryItemListForGroup(items, groupSize, carMake, carModel, carYear) {
       if (!items.length) {
         return `<div class="battery-results-message">لا توجد ماركات متاحة لهذا المقاس حالياً.</div>`;
       }
@@ -11864,40 +11849,43 @@ ${wash.services.map(s => `• ${s}`).join('\n')}
     }
 
     const BATTERY_BRAND_INFO = {
-      'Motorcraft': { country: 'هندية', warranty: { default: '3 سنوات', special: { '95AGM': 'سنة واحدة', 'DA100': 'سنة واحدة' } }, dealer: 'فورد الغانم' },
-      'Varta': { country: 'ألمانية', warranty: { default: 'سنة' }, dealer: 'الفهد إنترناشيونال' },
-      'Hankook': { country: 'كورية', warranty: { default: 'سنة' }, dealer: 'الفهد إنترناشيونال' },
-      'Booster': { country: 'صينية', warranty: { default: 'سنة' }, dealer: 'افتخار' },
-      'Oakley': { country: 'صينية', warranty: { default: 'سنة' }, dealer: 'افتخار' },
-      'Motorfit': { country: 'هندية', warranty: { default: 'سنة' }, dealer: 'افتخار' },
-      'Amtra': { country: '—', warranty: { default: 'سنة' }, dealer: 'البابطين' },
-      'Emtrac': { country: '—', warranty: { default: 'سنة' }, dealer: 'البابطين' }
+      'motorcraft': { country: 'هندية', warranty: { default: '3 سنوات', special: { '95AGM': '1 سنة', 'DA100': '1 سنة' } }, dealer: 'فورد الغانم' },
+      'varta': { country: 'ألمانية', warranty: { default: '1 سنة' }, dealer: 'الفهد إنترناشيونال' },
+      'hankook': { country: 'كورية', warranty: { default: '1 سنة' }, dealer: 'الفهد إنترناشيونال' },
+      'booster': { country: 'صينية', warranty: { default: '1 سنة' }, dealer: 'افتخار' },
+      'oakley': { country: 'صينية', warranty: { default: '1 سنة' }, dealer: 'افتخار' },
+      'motorfit': { country: 'هندية', warranty: { default: '1 سنة' }, dealer: 'افتخار' },
+      'amtra': { country: '—', warranty: { default: '1 سنة' }, dealer: 'البابطين' },
+      'emtrac': { country: 'هندية', warranty: { default: '1 سنة' }, dealer: 'البابطين' }
     };
 
     function getBrandInfo(brand) {
-      return BATTERY_BRAND_INFO[brand] || { country: 'غير محدد', warranty: { default: 'غير محدد' }, dealer: 'غير محدد' };
+      const normalized = normalizeText(brand);
+      return BATTERY_BRAND_INFO[normalized] || { country: '—', warranty: { default: '—' }, dealer: '—' };
     }
 
     function getWarranty(brand, size) {
       const info = getBrandInfo(brand);
-      if (brand === 'Motorcraft' && info.warranty.special && info.warranty.special[size]) {
-        return info.warranty.special[size];
+      if (!info.warranty) return '—';
+      const special = info.warranty.special || {};
+      const sizeNormalized = normalizeText(size);
+      for (const [key, value] of Object.entries(special)) {
+        if (normalizeText(key) === sizeNormalized) return value;
       }
-      return info.warranty.default;
+      return info.warranty.default || '—';
     }
 
     function getCountOfIDForBattery(make, model, year, size) {
       if (!carSheetData) return 0;
-      const match = carSheetData.find(row => 
-        normalizeText(row[0]) === normalizeText(make) &&
-        normalizeText(row[1]) === normalizeText(model) &&
-        normalizeText(row[2]) === normalizeText(year) &&
-        normalizeText(row[3]) === normalizeText(size)
+      const row = carSheetData.find(r => 
+        normalizeText(r[0]) === normalizeText(make) &&
+        normalizeText(r[1]) === normalizeText(model) &&
+        normalizeText(r[2]) === normalizeText(year) &&
+        normalizeText(r[3]) === normalizeText(size)
       );
-      return match ? Number(match[4] || 0) : 0;
+      if (!row) return 0;
+      return Number(row[4]) || 0;
     }
-
-    const BATTERY_DRIVER_MAP = {
       'dattaram+niyas': 'نياز-داترام',
       'muthu': 'موتو',
       'ganesh': 'جانيش',
